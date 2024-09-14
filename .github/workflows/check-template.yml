@@ -6,4 +6,5 @@ jobs:
   compara_diretorios:   
       uses: rtechthiago/check-template/.github/workflows/check-template.yml@main
       permissions: write-all
-      secrets: inherit   
+      secrets: inherit
+        
