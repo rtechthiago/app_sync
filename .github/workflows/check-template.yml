@@ -1,0 +1,9 @@
+name: Sync Template
+on:
+  push:
+
+jobs:
+  compara_diretorios:   
+      uses: rtechthiago/check-template/.github/workflows/check-template.yml@develop
+      permissions: write-all
+      secrets: inherit
