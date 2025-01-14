@@ -1,7 +1,6 @@
 name: Sync Template
 on:
   push:
-
     
 jobs:
   compara_diretorios:   
