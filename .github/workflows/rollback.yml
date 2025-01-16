@@ -1,0 +1,11 @@
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
