@@ -7,5 +7,3 @@ jobs:
       uses: rtechthiago/check-template/.github/workflows/check-template.yml@main
       permissions: write-all
       secrets: inherit
-
-      
