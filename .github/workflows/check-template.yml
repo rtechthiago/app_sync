@@ -5,23 +5,41 @@ jobs:
   check_custom_properties:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "latest"
+
       - name: Check Custom Properties
         run: |
+          # Debug: Listar arquivos para confirmar o diretório de execução
+          echo "--- Arquivos no diretório atual ---"
+          ls -R
+          
           # Obtendo todas as custom properties em formato JSON
           PROPS_JSON='${{ toJSON(github.event.repository.custom_properties) }}'
+          echo "--- Custom Properties JSON ---"
+          echo "$PROPS_JSON"
           
-          # Verifica se algum valor nas propriedades é 'data'
-          if echo "$PROPS_JSON" | grep -q ': "VPC"'; then
+          # Verifica se 'VPC' está presente nas propriedades
+          if echo "$PROPS_JSON" | grep -q '"VPC"'; then
+            echo "--- Alvo: VPC detectado ---"
             echo "Provisionando banco"
-            terraform plan 
+            terraform init -input=false
+            terraform plan -input=false -no-color
           fi
           
-          # Verifica se algum valor nas propriedades é 'Instancia'
-          if echo "$PROPS_JSON" | grep -q ': "SQS"'; then
+          # Verifica se 'SQS' está presente nas propriedades
+          if echo "$PROPS_JSON" | grep -q '"SQS"'; then
+            echo "--- Alvo: SQS detectado ---"
             echo "Provicionando Instancia"
-            terraform plan
+            terraform init -input=false
+            terraform plan -input=false -no-color
           fi
 
-  # compara_diretorios:
-  #   needs: check_custom_properties
-  #   uses: robthross/gitactions/.github/workflows/check-template.yml@develop
+  compara_diretorios:
+    needs: check_custom_properties
+    uses: robthross/gitactions/.github/workflows/check-template.yml@develop
