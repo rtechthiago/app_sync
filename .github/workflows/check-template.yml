@@ -11,12 +11,12 @@ jobs:
           PROPS_JSON='${{ toJSON(github.event.repository.custom_properties) }}'
           
           # Verifica se algum valor nas propriedades é 'data'
-          if echo "$PROPS_JSON" | grep -q ': "data"'; then
+          if echo "$PROPS_JSON" | grep -q ': "VPC"'; then
             echo "Provisionando banco"
           fi
           
           # Verifica se algum valor nas propriedades é 'Instancia'
-          if echo "$PROPS_JSON" | grep -q ': "Instancia"'; then
+          if echo "$PROPS_JSON" | grep -q ': "SQS"'; then
             echo "Provicionando Instancia"
           fi
 
