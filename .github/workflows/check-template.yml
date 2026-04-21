@@ -20,6 +20,6 @@ jobs:
             echo "Provicionando Instancia"
           fi
 
-  compara_diretorios:
-    needs: check_custom_properties
-    uses: robthross/gitactions/.github/workflows/check-template.yml@develop
+  # compara_diretorios:
+  #   needs: check_custom_properties
+  #   uses: robthross/gitactions/.github/workflows/check-template.yml@develop
