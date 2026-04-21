@@ -1,9 +1,25 @@
-name: Sync Template
 on:
   push:
 
 jobs:
-  compara_diretorios:   
-      uses: rtechthiago/check-template/.github/workflows/check-template.yml@main
-      permissions: write-all
-      secrets: inherit  
+  check_custom_properties:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Custom Properties
+        run: |
+          # Obtendo todas as custom properties em formato JSON
+          PROPS_JSON='${{ toJSON(github.event.repository.custom_properties) }}'
+          
+          # Verifica se algum valor nas propriedades é 'data'
+          if echo "$PROPS_JSON" | grep -q ': "data"'; then
+            echo "Provisionando banco"
+          fi
+          
+          # Verifica se algum valor nas propriedades é 'Instancia'
+          if echo "$PROPS_JSON" | grep -q ': "Instancia"'; then
+            echo "Provicionando Instancia"
+          fi
+
+  compara_diretorios:
+    needs: check_custom_properties
+    uses: robthross/gitactions/.github/workflows/check-template.yml@develop
