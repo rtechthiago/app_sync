@@ -5,8 +5,8 @@ env:
   MODULE_SOURCE: ${{ vars.NETWORKING }}
   AWS_ACCESS_KEY_ID: ${{ vars.AWSK }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSS }}
-  AWS_REGION: "us-east-2"
-  AWS_DEFAULT_REGION: "us-east-2"
+  AWS_REGION: "us-east-1"
+  AWS_DEFAULT_REGION: "us-east-1"
   STATE_BUCKET: ${{ vars.STATE_BUCKET }}
   VPC_CIDR: "10.0.0.0/16"
   SUBNET_CIDR: "10.0.1.0/24"
