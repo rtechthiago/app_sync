@@ -26,8 +26,14 @@ jobs:
           
           # Verifica se 'VPC' está presente nas propriedades
           if echo "$PROPS_JSON" | grep -q '"VPC"'; then
-            echo "--- Alvo: VPC detectado ---"
-            echo "Provisionando banco"
+            
+            module "my_networking" {
+            source            = "github.com/robthross/terraform_aws//modules/networking?ref=main"
+            vpc_cidr          = "10.0.0.0/16"
+            subnet_cidr       = "10.0.1.0/24"
+            availability_zone = "us-east-2a"
+              }
+            
             terraform init -input=false
             terraform plan -input=false -no-color
           fi
