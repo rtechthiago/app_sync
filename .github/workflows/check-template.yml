@@ -38,7 +38,7 @@ jobs:
           if echo "$PROPS_JSON" | grep -q '"VPC"'; then
             echo "--- Alvo: VPC detectado ---"
 
-            if [ -z "$NETWORKING_MODULE_SOURCE" ]; then
+            if [ -z "$MODULE_SOURCE" ]; then
               echo "Erro: configure a variavel NETWORKING em Settings > Secrets and variables > Actions > Variables."
               exit 1
             fi
@@ -60,8 +60,8 @@ jobs:
           if echo "$PROPS_JSON" | grep -q '"SQS"'; then
             echo "--- Alvo: SQS detectado ---"
 
-            if [ -z "$SQS_MODULE_SOURCE" ]; then
-              echo "Erro: configure a variavel SQS em Settings > Secrets and variables > Actions > Variables."
+            if [ -z "$MODULE_SOURCE" ]; then
+              echo "Erro: configure a variavel NETWORKING em Settings > Secrets and variables > Actions > Variables."
               exit 1
             fi
 
