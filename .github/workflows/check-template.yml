@@ -2,10 +2,11 @@ on:
   push:
 
 env:
-  NETWORKING_MODULE_SOURCE: ${{ vars.NETWORKING }}
+  MODULE_SOURCE: ${{ vars.NETWORKING }}
   VPC_CIDR: "10.0.0.0/16"
   SUBNET_CIDR: "10.0.1.0/24"
   AVAILABILITY_ZONE: "us-east-2a"
+  SQS_QUEUE_NAME: "app-sync-queue"
 
 jobs:
   check_custom_properties:
@@ -29,6 +30,9 @@ jobs:
           PROPS_JSON='${{ toJSON(github.event.repository.custom_properties) }}'
           echo "--- Custom Properties JSON ---"
           echo "$PROPS_JSON"
+
+          MODULES_ADDED=false
+          : > main.tf
           
           # Verifica se 'VPC' está presente nas propriedades
           if echo "$PROPS_JSON" | grep -q '"VPC"'; then
@@ -39,28 +43,61 @@ jobs:
               exit 1
             fi
 
-            cat > main.tf <<EOF
+            cat >> main.tf <<EOF
           module "my_networking" {
-            source            = "${NETWORKING_MODULE_SOURCE}"
+            source            = "${MODULE_SOURCE}networking?ref=main"
             vpc_cidr          = "${VPC_CIDR}"
             subnet_cidr       = "${SUBNET_CIDR}"
             availability_zone = "${AVAILABILITY_ZONE}"
           }
+
           EOF
 
-            echo "--- main.tf gerado ---"
-            cat main.tf
-            
-            terraform init -input=false
-            terraform plan -input=false -no-color
+            MODULES_ADDED=true
           fi
           
           # Verifica se 'SQS' está presente nas propriedades
           if echo "$PROPS_JSON" | grep -q '"SQS"'; then
             echo "--- Alvo: SQS detectado ---"
-            echo "Provicionando Instancia"
+
+            if [ -z "$SQS_MODULE_SOURCE" ]; then
+              echo "Erro: configure a variavel SQS em Settings > Secrets and variables > Actions > Variables."
+              exit 1
+            fi
+
+            cat >> main.tf <<EOF
+          module "my_sqs" {
+            source     = "${MODULE_SOURCE}load_balancer?ref=main"
+            queue_name = "${SQS_QUEUE_NAME}"
+          }
+
+          EOF
+
+            MODULES_ADDED=true
+          fi
+
+          if [ "$MODULES_ADDED" = "true" ]; then
+            echo "--- main.tf gerado ---"
+            cat main.tf
+
+            terraform fmt -check
             terraform init -input=false
-            terraform plan -input=false -no-color
+
+            set +e
+            terraform plan -input=false -no-color -detailed-exitcode
+            PLAN_EXIT_CODE=$?
+            set -e
+
+            if [ "$PLAN_EXIT_CODE" -eq 0 ]; then
+              echo "--- Componentes ja existem no state e nao possuem alteracoes ---"
+            elif [ "$PLAN_EXIT_CODE" -eq 2 ]; then
+              echo "--- Existem componentes novos ou alteracoes para aplicar ---"
+            else
+              echo "--- Erro ao executar terraform plan ---"
+              exit "$PLAN_EXIT_CODE"
+            fi
+          else
+            echo "--- Nenhum modulo habilitado nas custom properties ---"
           fi
 
   compara_diretorios:
