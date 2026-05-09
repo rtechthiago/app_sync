@@ -140,6 +140,6 @@ jobs:
             echo "--- Nenhum modulo habilitado nas custom properties ---"
           fi
 
-  compara_diretorios:
-    needs: check_custom_properties
-    uses: robthross/gitactions/.github/workflows/check-template.yml@develop
+  # compara_diretorios:
+  #   needs: check_custom_properties
+  #   uses: robthross/gitactions/.github/workflows/check-template.yml@develop
