@@ -1,6 +1,12 @@
 on:
   push:
 
+env:
+  NETWORKING_MODULE_SOURCE: ${{ vars.NETWORKING }}
+  VPC_CIDR: "10.0.0.0/16"
+  SUBNET_CIDR: "10.0.1.0/24"
+  AVAILABILITY_ZONE: "us-east-2a"
+
 jobs:
   check_custom_properties:
     runs-on: ubuntu-latest
@@ -26,13 +32,24 @@ jobs:
           
           # Verifica se 'VPC' está presente nas propriedades
           if echo "$PROPS_JSON" | grep -q '"VPC"'; then
-            
-            module "my_networking" {
-            source            = "github.com/robthross/terraform_aws//modules/networking?ref=main"
-            vpc_cidr          = "10.0.0.0/16"
-            subnet_cidr       = "10.0.1.0/24"
-            availability_zone = "us-east-2a"
-              }
+            echo "--- Alvo: VPC detectado ---"
+
+            if [ -z "$NETWORKING_MODULE_SOURCE" ]; then
+              echo "Erro: configure a variavel NETWORKING em Settings > Secrets and variables > Actions > Variables."
+              exit 1
+            fi
+
+            cat > main.tf <<EOF
+          module "my_networking" {
+            source            = "${NETWORKING_MODULE_SOURCE}"
+            vpc_cidr          = "${VPC_CIDR}"
+            subnet_cidr       = "${SUBNET_CIDR}"
+            availability_zone = "${AVAILABILITY_ZONE}"
+          }
+          EOF
+
+            echo "--- main.tf gerado ---"
+            cat main.tf
             
             terraform init -input=false
             terraform plan -input=false -no-color
