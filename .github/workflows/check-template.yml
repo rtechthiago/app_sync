@@ -3,6 +3,11 @@ on:
 
 env:
   MODULE_SOURCE: ${{ vars.NETWORKING }}
+  AWS_ACCESS_KEY_ID: ${{ vars.AWSK }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSS }}
+  AWS_REGION: "us-east-2"
+  AWS_DEFAULT_REGION: "us-east-2"
+  STATE_BUCKET: ${{ vars.STATE_BUCKET }}
   VPC_CIDR: "10.0.0.0/16"
   SUBNET_CIDR: "10.0.1.0/24"
   AVAILABILITY_ZONE: "us-east-2a"
@@ -77,11 +82,46 @@ jobs:
           fi
 
           if [ "$MODULES_ADDED" = "true" ]; then
+            REPO_NAME="${GITHUB_REPOSITORY##*/}"
+            STATE_BUCKET="${STATE_BUCKET:-terraformrtech}"
+            STATE_KEY="${REPO_NAME}/terraform.tfstate"
+
+            if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+              echo "Erro: configure a variavel AWSK em Settings > Secrets and variables > Actions > Variables."
+              exit 1
+            fi
+
+            if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+              echo "Erro: configure a secret AWSS em Settings > Secrets and variables > Actions > Secrets."
+              exit 1
+            fi
+
+            echo "--- Criando prefixo do state no S3 ---"
+            echo "Bucket: ${STATE_BUCKET}"
+            echo "Prefixo: ${REPO_NAME}/"
+
+            aws s3api head-bucket --bucket "$STATE_BUCKET"
+            aws s3api put-object --bucket "$STATE_BUCKET" --key "${REPO_NAME}/"
+
+            cat > backend.tf <<EOF
+          terraform {
+            backend "s3" {
+              bucket = "${STATE_BUCKET}"
+              key    = "${STATE_KEY}"
+              region = "${AWS_REGION}"
+            }
+          }
+
+          EOF
+
+            echo "--- backend.tf gerado ---"
+            cat backend.tf
+
             echo "--- main.tf gerado ---"
             cat main.tf
 
             terraform fmt -check
-            terraform init -input=false
+            terraform init -input=false -reconfigure
 
             set +e
             terraform plan -input=false -no-color -detailed-exitcode
